@@ -1091,7 +1091,7 @@ UPDATE master_lido_mapping m
 SET invoice_date_format_id = f.id
 FROM vendors v, invoice_date_formats f
 WHERE m.vendor_id = v.id
-  AND v.vendor_name ILIKE 'AXA Belgium |'
+  AND v.vendor_name ILIKE 'AXA Belgium'
   AND f.format_code ILIKE 'MM/DD/YYYY'
   AND m.is_deleted = FALSE;
 

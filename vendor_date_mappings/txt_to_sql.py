@@ -145,7 +145,7 @@ def txt_to_sql(
 
                 columns = [
                     column.strip()
-                    for column in line.split(column_separator)
+                    for column in line.split(column_separator.strip())
                 ]
 
                 required_columns = max(
