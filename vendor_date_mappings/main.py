@@ -10,7 +10,12 @@ from openpyxl.utils.exceptions import InvalidFileException
 from openpyxl.workbook.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-logger = logging.getLogger(__name__)
+from logging_utils import setup_logging
+
+SCRIPT_NAME = "excel_to_txt"
+
+logger: logging.Logger
+row_logger: logging.Logger
 
 
 # ==================================================
@@ -41,8 +46,8 @@ class DataConversionError(ExcelToTxtError):
 # Configuration
 # ==================================================
 
-INPUT_FILE = Path("data/Lido Mapping June 18.xlsx")
-OUTPUT_FILE = Path("Lido Mapping June 18.txt")
+INPUT_FILE = Path("./xl_sheets/Lido Mapping June 18.xlsx")
+OUTPUT_FILE = Path("./txt_files/Lido Mapping June 18.txt")
 
 SHEET_NAME = "in"
 
@@ -254,13 +259,13 @@ def write_rows(
             stats.empty_rows += 1
 
             if skip_empty_rows:
-                logger.info("  [SKIP]  Row %d: empty, skipped.", row_number)
+                row_logger.info("  [SKIP]  Row %d: empty, skipped.", row_number)
                 continue
 
-            logger.info("  [EMPTY] Row %d: empty, kept.", row_number)
+            row_logger.info("  [EMPTY] Row %d: empty, kept.", row_number)
 
         stats.written_rows += 1
-        logger.info(
+        row_logger.info(
             "  [OK]    Row %d: %s", row_number, column_separator.join(values)
         )
 
@@ -359,10 +364,11 @@ def excel_to_txt(
 # Main
 # ==================================================
 
-def configure_logging(level: int = logging.INFO) -> None:
-    """Configure a simple console logger for CLI usage."""
+def configure_logging() -> None:
+    """Configure console (summary/errors) and file (per-row) loggers."""
 
-    logging.basicConfig(level=level, format="%(message)s")
+    global logger, row_logger
+    logger, row_logger = setup_logging(SCRIPT_NAME)
 
 
 def main() -> None:

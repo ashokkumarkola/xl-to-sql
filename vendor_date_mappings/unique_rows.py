@@ -1,12 +1,20 @@
+import logging
 from pathlib import Path
+
+from logging_utils import setup_logging
+
+SCRIPT_NAME = "unique_rows"
+
+logger: logging.Logger
+row_logger: logging.Logger
 
 
 # ==================================================
 # Configuration
 # ==================================================
 
-INPUT_FILE = Path("Lido Mapping June 18.txt")
-OUTPUT_FILE = Path("Lido Mapping June 18 Unique.txt")
+INPUT_FILE = Path("./txt_files/Lido Mapping June 18.txt")
+OUTPUT_FILE = Path("./txt_files/Lido Mapping June 18 Unique.txt")
 
 SKIP_EMPTY_LINES = True
 
@@ -59,26 +67,34 @@ def remove_duplicates(
     total_records = 0
     duplicate_records = 0
 
+    logger.info("Reading rows from '%s'...", input_file)
+
     try:
         with input_file.open(
             "r",
             encoding="utf-8",
         ) as txt_file:
 
-            for line in txt_file:
+            for row_number, line in enumerate(
+                txt_file,
+                start=1,
+            ):
 
                 record = line.strip()
 
                 if skip_empty_lines and not record:
+                    row_logger.info("  [SKIP]  Row %d: empty, skipped.", row_number)
                     continue
 
                 total_records += 1
 
                 if record in unique_records:
                     duplicate_records += 1
+                    row_logger.info("  [DUP]   Row %d: %s", row_number, record)
                     continue
 
                 unique_records.add(record)
+                row_logger.info("  [OK]    Row %d: %s", row_number, record)
 
     except PermissionError as exc:
         raise InputFileError(
@@ -119,13 +135,18 @@ def remove_duplicates(
     # Result
     # --------------------------------------------------
 
-    print(
-        "Processing successful.\n"
-        f"Input             : {input_file}\n"
-        f"Output            : {output_file}\n"
-        f"Total records     : {total_records}\n"
-        f"Unique records    : {len(unique_records)}\n"
-        f"Duplicate records : {duplicate_records}"
+    logger.info(
+        "\nProcessing successful.\n"
+        "Input             : %s\n"
+        "Output            : %s\n"
+        "Total records     : %d\n"
+        "Unique records    : %d\n"
+        "Duplicate records : %d",
+        input_file,
+        output_file,
+        total_records,
+        len(unique_records),
+        duplicate_records,
     )
 
 
@@ -133,10 +154,17 @@ def remove_duplicates(
 # Main
 # ==================================================
 
-if __name__ == "__main__":
+def configure_logging() -> None:
+    """Configure console (summary/errors) and file (per-row) loggers."""
+
+    global logger, row_logger
+    logger, row_logger = setup_logging(SCRIPT_NAME)
+
+
+def main() -> None:
+    configure_logging()
 
     try:
-
         remove_duplicates(
             input_file=INPUT_FILE,
             output_file=OUTPUT_FILE,
@@ -144,18 +172,15 @@ if __name__ == "__main__":
         )
 
     except UniqueTxtError as exc:
-
-        print(f"\nERROR: {exc}\n")
+        logger.error("\nERROR: %s\n", exc)
 
     except KeyboardInterrupt:
+        logger.error("\nERROR: Operation cancelled by user.")
 
-        print("\nERROR: Operation cancelled by user.")
-
-    except Exception as exc:
-
-        print(
-            f"\nUNEXPECTED ERROR: "
-            f"{type(exc).__name__}: {exc}\n"
-        )
-
+    except Exception:
+        logger.exception("\nUNEXPECTED ERROR:")
         raise
+
+
+if __name__ == "__main__":
+    main()
