@@ -18,8 +18,8 @@ OUTPUT_FILE = Path("./sql_scripts/invoice_date_format_mappings.sql")
 
 COLUMN_SEPARATOR = " | "
 
-VENDOR_COLUMN_INDEX = 1
-DATE_FORMAT_COLUMN_INDEX = 2
+VENDOR_COLUMN_INDEX = 0
+DATE_FORMAT_COLUMN_INDEX = 1
 
 DEFAULT_DATE_FORMAT = "MM/DD/YYYY"
 
@@ -99,8 +99,8 @@ def txt_to_sql(
     input_file: Path,
     output_file: Path,
     column_separator: str = " | ",
-    vendor_column_index: int = 1,
-    date_format_column_index: int = 2,
+    vendor_column_index: int = 0,
+    date_format_column_index: int = 1,
 ) -> None:
 
     # --------------------------------------------------
@@ -147,11 +147,6 @@ def txt_to_sql(
                     column.strip()
                     for column in line.split(column_separator.strip())
                 ]
-
-                required_columns = max(
-                    vendor_column_index,
-                    date_format_column_index,
-                ) + 1
 
                 if len(columns) <= vendor_column_index:
                     raise InvalidRowError(

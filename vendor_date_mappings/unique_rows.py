@@ -63,7 +63,7 @@ def remove_duplicates(
     # Read and process
     # --------------------------------------------------
 
-    unique_records: set[str] = set()
+    unique_records: dict[str, None] = {}
     total_records = 0
     duplicate_records = 0
 
@@ -93,7 +93,7 @@ def remove_duplicates(
                     row_logger.info("  [DUP]   Row %d: %s", row_number, record)
                     continue
 
-                unique_records.add(record)
+                unique_records[record] = None
                 row_logger.info("  [OK]    Row %d: %s", row_number, record)
 
     except PermissionError as exc:
